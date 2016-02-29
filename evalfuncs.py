@@ -1,0 +1,88 @@
+__author__ = "Nicu Pavel <npavel@linuxconsulting.ro>"
+
+import math
+
+class EvalFunc:
+    def __init__(self):
+        self.start = 0
+        self.end = 0
+        self.axes = 2
+        self.decimals = 2
+
+    def eval(self, l):
+        return l
+
+    def info(self):
+        return "Default evaluator"
+
+# http://www.geatbx.com/docu/fcnindex-01.html#P140_6155
+# all functions accept list as parameter depending on dimensions
+# rastrigin(x) = 10 * n + sum(x(i)^2 - 10*cos(2*pi*x(i))), i=1:n, -5.12 <= x(i) <= 5.12
+class Rastrigin(EvalFunc):
+    def __init__(self):
+        EvalFunc.__init__(self)
+        self.start = -5.12
+        self.end = 5.12
+
+    def eval(self, l):
+        n = len(l)
+        res = 10 * n + sum((x ** 2 - 10 * math.cos(2 * math.pi * x)) for x in l)
+        return res
+
+    def info(self):
+        return "Rastrigin global minimum f(x)=0; x(i)=0, i=1:n"
+
+# f8(x)=sum(x(i)^2/4000)-prod(cos(x(i)/sqrt(i)))+1, i=1:n -600<=x(i)<= 600.
+class Griewangk(EvalFunc):
+    def __init__(self):
+        EvalFunc.__init__(self)
+        self.start = -600
+        self.end = 600
+
+    def eval(self, l):
+        product = 1
+        for i in range(0, len(l)):
+            product *= math.cos(l[i] / math.sqrt(i + 1))
+        res = sum((math.pow(x, 2) / 4000.0) for x in l) - product + 1
+        return res
+
+    def info(self):
+        return "Griewangk global minimum f(x)=0; x(i)=0, i=1:n"
+
+
+# f2(x)=sum(100*(x(i+1)-x(i)^2)^2+(1-x(i))^2) i=1:n-1; -2.048<=x(i)<=2.048.
+class Rosenbrock(EvalFunc):
+    def __init__(self):
+        EvalFunc.__init__(self)
+        self.start = -2.048
+        self.end = 2.048
+        self.decimals = 3
+
+    def eval(self, l):
+        sum = 0
+        for i in range(0, len(l)-1):
+            sum = sum + 100 * (l[i + 1] - l[i] ** 2) ** 2 + (1 - l[i]) ** 2
+        return sum
+
+    def info(self):
+        return "Rosenbrok global minimum f(x)=0; x(i)=1, i=1:n"
+
+
+# fSixh(x1,x2)=(4-2.1*x1^2+x1^4/3)*x1^2+x1*x2+(-4+4*x2^2)*x2^2 -3<=x1<=3, -2<=x2<=2.
+class Sixhump(EvalFunc):
+    def __init__(self):
+        EvalFunc.__init__(self)
+        self.start = -2
+        self.end = 2
+        self.decimals = 6
+
+    def eval(self, l):
+        x1 = l[0]
+        x2 = l[1]
+        res = (4 - (2.1 * (x1 ** 2)) + math.pow(x1, 4)/3) * (x1 ** 2)
+        res += x1 * x2
+        res += (-4 + 4 * (x2 ** 2)) * (x2 ** 2)
+        return res
+
+    def info(self):
+        return "Six Hump Camel back global minimum f(x1,x2)=-1.0316; (x1,x2)=(-0.0898,0.7126), (0.0898,-0.7126)"
