@@ -5,11 +5,6 @@ import random
 import time
 from evalfuncs import *
 
-class float2e(float):
-    def __repr__(self):
-        return "%0.2f" % self
-
-
 class HillClimbing:
     def __init__(self):
         self._nrbits = 10

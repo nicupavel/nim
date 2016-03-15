@@ -2,15 +2,23 @@ __author__ = "Nicu Pavel <npavel@linuxconsulting.ro>"
 
 import math
 
+class float2e(float):
+    def __repr__(self):
+        return "%0.2f" % self
+
 class EvalFunc:
     def __init__(self):
         self.start = 0
         self.end = 0
         self.axes = 2
         self.decimals = 2
+        self.intervals = [] # only used in GA TBD for hillclimbing
 
     def eval(self, l):
         return l
+
+    def fitness(self, l):
+        return 1/self.eval(l)
 
     def info(self):
         return "Default evaluator"
@@ -23,11 +31,15 @@ class Rastrigin(EvalFunc):
         EvalFunc.__init__(self)
         self.start = -5.12
         self.end = 5.12
+        self.intervals = [(-3, 3), (-3, 3)]
 
     def eval(self, l):
         n = len(l)
         res = 10 * n + sum((x ** 2 - 10 * math.cos(2 * math.pi * x)) for x in l)
         return res
+
+    def fitness(self, l):
+        return 1/(self.eval(l) + 0.0000001)
 
     def info(self):
         return "Rastrigin global minimum f(x)=0; x(i)=0, i=1:n"
@@ -75,6 +87,7 @@ class Sixhump(EvalFunc):
         self.start = -2
         self.end = 2
         self.decimals = 6
+        self.intervals = [(-3, 3), (-2, 2)] # only used in GA
 
     def eval(self, l):
         x1 = l[0]
@@ -83,6 +96,9 @@ class Sixhump(EvalFunc):
         res += x1 * x2
         res += (-4 + 4 * (x2 ** 2)) * (x2 ** 2)
         return res
+
+    def fitness(self, l):
+        return 1/(self.eval(l) + 1.05)
 
     def info(self):
         return "Six Hump Camel back global minimum f(x1,x2)=-1.0316; (x1,x2)=(-0.0898,0.7126), (0.0898,-0.7126)"
