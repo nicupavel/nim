@@ -2,6 +2,7 @@ __author__ = "Nicu Pavel <npavel@linuxconsulting.ro>"
 
 import math
 
+
 class float2e(float):
     def __repr__(self):
         return "%0.2f" % self

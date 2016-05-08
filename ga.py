@@ -4,15 +4,20 @@ import math
 import random
 import time
 import copy
-from pprint import pprint
+from log import log
 from evalfuncs import *
 
-class ChangeProbabilities:
+class ProbabilitiesWithHybridization:
+    def __init__(self):
+        self.mutation = 0.01
+        self.crossover = 0.4
+        self.hybrid = 0.3
+
+class ProbabilitiesNoHybridization:
     def __init__(self):
         self.mutation = 0.01
         self.crossover = 0.4
         self.hybrid = 0
-
 
 class Chromosome(object):
     def __init__(self, components=30, decimals=2, eval = EvalFunc):
@@ -28,14 +33,14 @@ class Chromosome(object):
         self.value = None
         self.fitness = None
 
-        #print "Using function: %s" % self.eval.info()
+        log.debug("Using function: %s" % self.eval.info())
 
         self.__getBitRepresentation()
         self.bits = Chromosome.generateRandomBits(self.bitsTotal)
 
-        #print "Bits per component:", self.bitsPerComponent
-        #print "Total bits: %d" % self.bitsTotal
-        #print "Random bits: %s" % self.bits
+        log.debug("Bits per component:", self.bitsPerComponent)
+        log.debug("Total bits: %d" % self.bitsTotal)
+        log.debug("Random bits: %s" % self.bits)
 
 
     def updateValues(self):
@@ -46,16 +51,16 @@ class Chromosome(object):
 
     def crossoverOnepoint(self, other):
         pos = random.randint(1, self.bitsTotal)
-        #print "Crossed One Point %d\n\t%s\t%s" % (pos, self.bits, other.bits)
+        #log.debug("Crossed One Point %d\n\t%s\t%s" % (pos, self.bits, other.bits))
         thisRight = self.bits[pos:self.bitsTotal]
         otherRight = other.bits[pos:other.bitsTotal]
         self.bits = self.bits[:pos] + otherRight
         other.bits = other.bits[:pos] + thisRight
-        #print "\t%s\t%s" % (self.bits, other.bits)
+        #log.debug("\t%s\t%s" % (self.bits, other.bits))
 
 
     def mutate(self, probability=0.5):
-        #print "Mutated\n\t %s" % self.bits
+        #log.debug "Mutated\n\t %s" % self.bits
         for i in range(0, self.bitsTotal):
             if random.random() < probability:
                 if self.bits[i] == '1':
@@ -64,7 +69,7 @@ class Chromosome(object):
                     newBit = '1'
 
                 self.bits = self.bits[:i] + newBit + self.bits[i+1:]
-        #print "\t %s" % self.bits
+        #log.debug("\t %s" % self.bits)
 
 
     def hybrid(self):
@@ -74,15 +79,15 @@ class Chromosome(object):
         neighbors = self.generateAllNeighbors()
         c = copy.deepcopy(self)
         best = copy.deepcopy(self)
-        #print "Initial Hillclimb: ",
-        #c.dump()
+        #log.debug("Initial Hillclimb: ")
+        #log.debug(c.dump())
         for n in neighbors:
             c.bits = n
             c.updateValues()
-            #print "* Neighbor %s fitness: %0.2f local: %0.2f best:%0.2f" % (n, c.fitness, self.fitness, best.fitness)
+            #log.debug "* Neighbor %s fitness: %0.2f local: %0.2f best:%0.2f" % (n, c.fitness, self.fitness, best.fitness)
             #c.dump()
             if c.fitness > self.fitness and c.fitness > best.fitness:
-                    #print "\tBetter fitness %f > %f" % (c.fitness, best.fitness)
+                    #log.debug "\tBetter fitness %f > %f" % (c.fitness, best.fitness)
                     best = copy.deepcopy(c)
 
         self.bits = best.bits
@@ -104,7 +109,7 @@ class Chromosome(object):
             p += 1
 
     def dump(self):
-        print("%s %s Value: %0.2f Fitness: %0.4f" % (self.bits, map(float2e, self.floats), self.value, self.fitness))
+        log.info("%s %s Value: %0.2f Fitness: %0.4f" % (self.bits, map(float2e, self.floats), self.value, self.fitness))
 
 
     def __getBitRepresentation(self):
@@ -142,7 +147,7 @@ class Chromosome(object):
 
 class Population(object):
 
-    def __init__(self, size=100, components=30, decimals=2, eval = EvalFunc, elitism = 1, changeProb = ChangeProbabilities()):
+    def __init__(self, size=100, components=30, decimals=2, eval = EvalFunc, elitism = 1, changeProb = ProbabilitiesWithHybridization()):
         self.size = size
         self.components = components
         self.decimals = decimals
@@ -152,9 +157,10 @@ class Population(object):
         self.population = []
         self.best = None
         self.unchangedSteps = 0
+        log.info(self.eval().info())
 
     def generatePopulation(self):
-        print "Generating Population with size %d" % self.size
+        log.debug("Generating Population with size %d" % self.size)
         for i in range(0, self.size):
             c = Chromosome(self.components, self.decimals, self.eval)
             c.updateValues()
@@ -170,7 +176,7 @@ class Population(object):
 
         slen = len(selection)
         it = iter(selection)
-        print "Selected %d for crossover" % slen
+        log.debug("Selected %d for crossover" % slen)
 
         for c in it:
             try:
@@ -206,12 +212,12 @@ class Population(object):
         sumFitnessTotal = 0.0
         for c in self.population:
             sumFitnessTotal += c.fitness
-        print "* Total Fitness %0.3f" % sumFitnessTotal
+        log.debug("* Total Fitness %0.3f" % sumFitnessTotal)
 
         for i in range(0, len(self.population)):
             sumFitness = 0.0
             r = random.uniform(0, sumFitnessTotal)
-            #print "Selection %d %0.3f/%0.3f" % (i, r, sumFitnessTotal)
+            #log.debug "Selection %d %0.3f/%0.3f" % (i, r, sumFitnessTotal)
             for c in self.population:
                 sumFitness += c.fitness
                 if sumFitness >= r:
@@ -229,7 +235,7 @@ class Population(object):
             sumFitnessTotal += c.fitness
         self.updateValues()
 
-        print "* Total Fitness After selection %0.3f" % sumFitnessTotal
+        log.debug("* Total Fitness After selection %0.3f" % sumFitnessTotal)
 
         self.crossover(shouldUpdate=False)
         self.mutate(shouldUpdate=False)
@@ -238,11 +244,11 @@ class Population(object):
 
         currentBest = self.population[0]
         if self.best is None or self.best.fitness < currentBest.fitness:
-            print "Top chromosome: ",
+            log.debug("Top chromosome: ")
             self.best = currentBest
             self.best.dump()
         else:
-            print "Not improved in this step"
+            log.debug("Not improved in this step")
             self.unchangedSteps += 1
 
 
@@ -250,10 +256,10 @@ class Population(object):
         self.population[0].dump()
 
     def dump(self):
-        print '-' * 80
+        log.debug('-' * 80)
         for c in self.population:
             c.dump()
-        print '-' * 80
+        log.debug('-' * 80)
 
     def sortByFitness(self):
         self.population.sort(key = lambda c: c.fitness, reverse = True)
@@ -278,7 +284,7 @@ if __name__ == "__main__":
     # c1.mutate()
     # c1.crossoverOnepoint(c2)
 
-    #print c1.generateAllNeighbors()
+    #log.debug c1.generateAllNeighbors()
 
     #c1.hybridHillclimb()
     #p = Population(50, 30, 2, Rastrigin)
@@ -293,7 +299,7 @@ if __name__ == "__main__":
     # p.hybrid()
     # p.dump()
     # p.selection()
-    # print "After Selection"
+    # log.debug "After Selection"
     # p.dump()
     # p.step()
 
@@ -302,17 +308,17 @@ if __name__ == "__main__":
     maxUnchangedSteps = None
 
     if runSimulation:
-        p = Population(size=50, components=30, decimals=2, eval=Rastrigin)
+        p = Population(size=50, components=30, decimals=2, eval=Rastrigin, changeProb=ProbabilitiesWithHybridization())
         p.generatePopulation()
         p.dump()
         for i in range(0, 30):
             p.step()
             p.dumpBest()
             if maxUnchangedSteps is not None and p.unchangedSteps > maxUnchangedSteps:
-                print "Unchanged in %d steps. Finishing." % maxUnchangedSteps
+                log.debug("Unchanged in %d steps. Finishing." % maxUnchangedSteps)
                 break
 
-        print "Best: ",
+        log.info("Best: ")
         p.best.dump()
 
     if runBasinSimulation:
@@ -328,4 +334,5 @@ if __name__ == "__main__":
             else:
                 result[b].append(i)
 
+        from pprint import pprint
         pprint(result)
