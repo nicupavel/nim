@@ -11,20 +11,17 @@ class ProbabilitiesWithHybridization:
     def __init__(self):
         self.mutation = 0.01
         self.crossover = 0.4
-        self.hybrid = 0.3
+        self.hybrid = 0.5
 
 class ProbabilitiesNoHybridization:
     def __init__(self):
         self.mutation = 0.01
         self.crossover = 0.4
-        self.hybrid = 0
+        self.hybrid = -1
 
 class Chromosome(object):
-    def __init__(self, components=30, decimals=2, eval = EvalFunc):
-        self.components = components
-        self.decimals = decimals
-        self.eval = eval()
-        self.func = eval
+    def __init__(self, eval = EvalFunc):
+        self.eval = eval
 
         self.bitsPerComponent = []
         self.bitsTotal = 0
@@ -44,6 +41,7 @@ class Chromosome(object):
 
 
     def updateValues(self):
+        EvaluationOverflow.check()
         self.asFloatInInterval()
         self.value = self.eval.eval(self.floats)
         self.fitness = self.eval.fitness(self.floats)
@@ -71,7 +69,6 @@ class Chromosome(object):
                 self.bits = self.bits[:i] + newBit + self.bits[i+1:]
         #log.debug("\t %s" % self.bits)
 
-
     def hybrid(self):
         return self.hybridHillclimb()
 
@@ -87,12 +84,10 @@ class Chromosome(object):
             #log.debug "* Neighbor %s fitness: %0.2f local: %0.2f best:%0.2f" % (n, c.fitness, self.fitness, best.fitness)
             #c.dump()
             if c.fitness > self.fitness and c.fitness > best.fitness:
-                    #log.debug "\tBetter fitness %f > %f" % (c.fitness, best.fitness)
-                    best = copy.deepcopy(c)
-
+                log.debug("\tHybridization: Better fitness %f > %f" % (c.fitness, best.fitness))
+                best = copy.deepcopy(c)
         self.bits = best.bits
         self.updateValues()
-
 
     def asFloatInInterval(self):
         p = 0
@@ -114,7 +109,7 @@ class Chromosome(object):
 
     def __getBitRepresentation(self):
         for i in self.eval.intervals:
-            l = Chromosome.getNrBits(i[0], i[1], self.decimals)
+            l = Chromosome.getNrBits(i[0], i[1], self.eval.decimals)
             self.bitsPerComponent.append(l)
             self.bitsTotal += l
 
@@ -147,22 +142,20 @@ class Chromosome(object):
 
 class Population(object):
 
-    def __init__(self, size=100, components=30, decimals=2, eval = EvalFunc, elitism = 1, changeProb = ProbabilitiesWithHybridization()):
+    def __init__(self, size=100, eval = EvalFunc, elitism = 1, changeProb = ProbabilitiesNoHybridization()):
         self.size = size
-        self.components = components
-        self.decimals = decimals
-        self.eval = eval
+        self.eval = eval()
         self.changeProb = changeProb
         self.elitism = elitism
         self.population = []
         self.best = None
         self.unchangedSteps = 0
-        log.info(self.eval().info())
+        log.info(self.eval.info())
 
     def generatePopulation(self):
         log.debug("Generating Population with size %d" % self.size)
         for i in range(0, self.size):
-            c = Chromosome(self.components, self.decimals, self.eval)
+            c = Chromosome(self.eval)
             c.updateValues()
             #c.dump()
             self.population.append(c)
@@ -256,10 +249,10 @@ class Population(object):
         self.population[0].dump()
 
     def dump(self):
-        log.debug('-' * 80)
+        log.info('-' * 80)
         for c in self.population:
             c.dump()
-        log.debug('-' * 80)
+        log.info('-' * 80)
 
     def sortByFitness(self):
         self.population.sort(key = lambda c: c.fitness, reverse = True)
@@ -308,12 +301,17 @@ if __name__ == "__main__":
     maxUnchangedSteps = None
 
     if runSimulation:
-        p = Population(size=50, components=30, decimals=2, eval=Rastrigin, changeProb=ProbabilitiesWithHybridization())
+        p = Population(size=50, eval=Rastrigin, changeProb=ProbabilitiesNoHybridization())
         p.generatePopulation()
         p.dump()
-        for i in range(0, 30):
-            p.step()
-            p.dumpBest()
+        for i in range(0, 40):
+            try:
+                p.step()
+                p.dumpBest()
+            except EvaluationOverflow:
+                log.info("Evaluation limit reached !")
+                break
+
             if maxUnchangedSteps is not None and p.unchangedSteps > maxUnchangedSteps:
                 log.debug("Unchanged in %d steps. Finishing." % maxUnchangedSteps)
                 break

@@ -2,6 +2,15 @@ __author__ = "Nicu Pavel <npavel@linuxconsulting.ro>"
 
 import math
 
+class EvaluationOverflow(Exception):
+    limit = 5000
+    current = 0
+
+    @classmethod
+    def check(cls):
+        cls.current += 1
+        if cls.current >= cls.limit:
+            raise EvaluationOverflow
 
 class float2e(float):
     def __repr__(self):
@@ -9,6 +18,7 @@ class float2e(float):
 
 class EvalFunc:
     def __init__(self):
+        self.evaluations = 0
         self.start = 0
         self.end = 0
         self.axes = 2
@@ -16,6 +26,7 @@ class EvalFunc:
         self.intervals = [] # only used in GA TBD for hillclimbing
 
     def eval(self, l):
+        self.evaluations += 1
         return l
 
     def fitness(self, l):
@@ -39,6 +50,7 @@ class Rastrigin(EvalFunc):
         self.intervals = [(-3, 3), (-3, 3)]
 
     def eval(self, l):
+        self.evaluations += 1
         n = len(l)
         res = 10 * n + sum((x ** 2 - 10 * math.cos(2 * math.pi * x)) for x in l)
         return res
@@ -57,6 +69,7 @@ class Griewangk(EvalFunc):
         self.end = 600
 
     def eval(self, l):
+        self.evaluations += 1
         product = 1
         for i in range(0, len(l)):
             product *= math.cos(l[i] / math.sqrt(i + 1))
@@ -77,6 +90,7 @@ class Rosenbrock(EvalFunc):
 
 
     def eval(self, l):
+        self.evaluations += 1
         sum = 0
         for i in range(0, len(l)-1):
             sum = sum + 100 * (l[i + 1] - l[i] ** 2) ** 2 + (1 - l[i]) ** 2
@@ -96,6 +110,7 @@ class Sixhump(EvalFunc):
         self.intervals = [(-3, 3), (-2, 2)] # only used in GA
 
     def eval(self, l):
+        self.evaluations += 1
         x1 = l[0]
         x2 = l[1]
         res = (4 - (2.1 * (x1 ** 2)) + math.pow(x1, 4)/3) * (x1 ** 2)
@@ -121,6 +136,7 @@ class Miscfunc1(EvalFunc):
         self.axes = 1
 
     def eval(self, l):
+        self.evaluations += 1
         x = l[0]
         #res = math.pow(x, 3) - 60 * math.pow(x, 2) + 900 * x + 100
         #return res
