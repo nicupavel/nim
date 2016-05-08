@@ -4,17 +4,18 @@ import math
 import random
 import time
 import copy
+from pprint import pprint
 from evalfuncs import *
 
 class ChangeProbabilities:
     def __init__(self):
-        self.mutation = 0.5
+        self.mutation = 0.01
         self.crossover = 0.4
-        self.hybrid = 0.3
+        self.hybrid = 0
 
 
 class Chromosome(object):
-    def __init__(self, components=2, decimals=3, eval = EvalFunc):
+    def __init__(self, components=30, decimals=2, eval = EvalFunc):
         self.components = components
         self.decimals = decimals
         self.eval = eval()
@@ -56,7 +57,7 @@ class Chromosome(object):
     def mutate(self, probability=0.5):
         #print "Mutated\n\t %s" % self.bits
         for i in range(0, self.bitsTotal):
-            if random.random() > probability:
+            if random.random() < probability:
                 if self.bits[i] == '1':
                     newBit = '0'
                 else:
@@ -108,7 +109,7 @@ class Chromosome(object):
 
     def __getBitRepresentation(self):
         for i in self.eval.intervals:
-            l = self.getNrBits(i[0], i[1], self.decimals)
+            l = Chromosome.getNrBits(i[0], i[1], self.decimals)
             self.bitsPerComponent.append(l)
             self.bitsTotal += l
 
@@ -141,7 +142,7 @@ class Chromosome(object):
 
 class Population(object):
 
-    def __init__(self, size=100, components=2, decimals=3, eval = EvalFunc, elitism = 1, changeProb = ChangeProbabilities()):
+    def __init__(self, size=100, components=30, decimals=2, eval = EvalFunc, elitism = 1, changeProb = ChangeProbabilities()):
         self.size = size
         self.components = components
         self.decimals = decimals
@@ -164,7 +165,7 @@ class Population(object):
     def crossover(self, shouldUpdate = True):
         selection = []
         for c in self.population[self.elitism:]:
-            if random.random() > self.changeProb.crossover:
+            if random.random() < self.changeProb.crossover:
                 selection.append(c)
 
         slen = len(selection)
@@ -189,7 +190,7 @@ class Population(object):
 
     def hybrid(self, shouldUpdate = True):
         for c in self.population[self.elitism:]:
-            if random.random() > self.changeProb.hybrid:
+            if random.random() < self.changeProb.hybrid:
                 c.hybrid()
 
         if shouldUpdate:
@@ -205,6 +206,7 @@ class Population(object):
         sumFitnessTotal = 0.0
         for c in self.population:
             sumFitnessTotal += c.fitness
+        print "* Total Fitness %0.3f" % sumFitnessTotal
 
         for i in range(0, len(self.population)):
             sumFitness = 0.0
@@ -221,6 +223,14 @@ class Population(object):
 
     def step(self):
         self.selection()
+
+        sumFitnessTotal = 0.0
+        for c in self.population:
+            sumFitnessTotal += c.fitness
+        self.updateValues()
+
+        print "* Total Fitness After selection %0.3f" % sumFitnessTotal
+
         self.crossover(shouldUpdate=False)
         self.mutate(shouldUpdate=False)
         self.hybrid(shouldUpdate=False)
@@ -236,6 +246,8 @@ class Population(object):
             self.unchangedSteps += 1
 
 
+    def dumpBest(self):
+        self.population[0].dump()
 
     def dump(self):
         print '-' * 80
@@ -269,10 +281,10 @@ if __name__ == "__main__":
     #print c1.generateAllNeighbors()
 
     #c1.hybridHillclimb()
-    #p = Population(100, 2, 3, Rastrigin)
-    p = Population(10, 2, 3, Sixhump)
-    p.generatePopulation()
-    p.dump()
+    #p = Population(50, 30, 2, Rastrigin)
+
+    #p = Population(10, 2, 3, Sixhump)
+
 
     # p.crossover()
     # p.dump()
@@ -285,12 +297,35 @@ if __name__ == "__main__":
     # p.dump()
     # p.step()
 
-    maxUnchangedSteps = 10
-    for i in range(0, 200):
-        p.step()
-        p.dump()
-        if p.unchangedSteps > maxUnchangedSteps:
-            print "Unchanged in %d steps. Finishing." % maxUnchangedSteps
-            break
+    runSimulation = True
+    runBasinSimulation = False
+    maxUnchangedSteps = None
 
-    print "Best: ", p.best.dump()
+    if runSimulation:
+        p = Population(size=50, components=30, decimals=2, eval=Rastrigin)
+        p.generatePopulation()
+        p.dump()
+        for i in range(0, 30):
+            p.step()
+            p.dumpBest()
+            if maxUnchangedSteps is not None and p.unchangedSteps > maxUnchangedSteps:
+                print "Unchanged in %d steps. Finishing." % maxUnchangedSteps
+                break
+
+        print "Best: ",
+        p.best.dump()
+
+    if runBasinSimulation:
+        result = {}
+        for i in range(0, 32):
+            c = Chromosome(1, 0, Miscfunc1)
+            c.updateValues()
+            #c.dump()
+            c.hybridHillclimb()
+            b = int(c.floats[0])
+            if result.get(b, None) is None:
+                result[b] = [i]
+            else:
+                result[b].append(i)
+
+        pprint(result)

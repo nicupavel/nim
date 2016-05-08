@@ -104,7 +104,7 @@ class HillClimbing:
                     #print("\t Neighbor %s %s Eval: %0.2f Local Best: %0.2f" %
                     #      (map(float2e, x_float),  x_bits, x_eval, current_eval))
 
-                    if x_eval < current_eval:
+                    if x_eval > current_eval:
                         current_node = x_bits
                         current_node_float = x_float
                         current_eval = x_eval
@@ -116,7 +116,7 @@ class HillClimbing:
 
                     neighbor += 1
 
-            if best_eval > current_eval:
+            if best_eval < current_eval:
                 best_node = current_node
                 best_node_float = current_node_float
                 best_eval = current_eval
@@ -133,14 +133,17 @@ if __name__ == "__main__":
     #test(5, 2, -5.12, 5.12)
     hillclimb = HillClimbing()
 
-    hillclimb.set_eval_function(Rastrigin)
-    hillclimb.run(iterations=300)
+    #hillclimb.set_eval_function(Rastrigin)
+    #hillclimb.run(iterations=300)
 
-    hillclimb.set_eval_function(Griewangk)
-    hillclimb.run(iterations=300)
+    #hillclimb.set_eval_function(Griewangk)
+    #hillclimb.run(iterations=300)
 
-    hillclimb.set_eval_function(Rosenbrock)
-    hillclimb.run(iterations=300)
+    #hillclimb.set_eval_function(Rosenbrock)
+    #hillclimb.run(iterations=300)
 
-    hillclimb.set_eval_function(Sixhump)
+    #hillclimb.set_eval_function(Sixhump)
+    #hillclimb.run(iterations=300)
+
+    hillclimb.set_eval_function(Miscfunc1)
     hillclimb.run(iterations=300)

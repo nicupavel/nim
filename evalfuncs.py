@@ -31,6 +31,10 @@ class Rastrigin(EvalFunc):
         EvalFunc.__init__(self)
         self.start = -5.12
         self.end = 5.12
+        # self.intervals = [(-3, 3), (-3, 3), (-3, 3), (-3, 3), (-3, 3), (-3, 3), (-3, 3), (-3, 3),(-3, 3), (-3, 3),
+        # (-3, 3), (-3, 3),(-3, 3), (-3, 3),(-3, 3), (-3, 3),(-3, 3), (-3, 3),(-3, 3), (-3, 3),(-3, 3), (-3, 3),(-3, 3),
+        # (-3, 3),(-3, 3), (-3, 3)]
+
         self.intervals = [(-3, 3), (-3, 3)]
 
     def eval(self, l):
@@ -70,6 +74,7 @@ class Rosenbrock(EvalFunc):
         self.end = 2.048
         self.decimals = 3
 
+
     def eval(self, l):
         sum = 0
         for i in range(0, len(l)-1):
@@ -102,3 +107,26 @@ class Sixhump(EvalFunc):
 
     def info(self):
         return "Six Hump Camel back global minimum f(x1,x2)=-1.0316; (x1,x2)=(-0.0898,0.7126), (0.0898,-0.7126)"
+
+
+# f=f=x3-60x2+900x+100
+class Miscfunc1(EvalFunc):
+    def __init__(self):
+        EvalFunc.__init__(self)
+        self.start = 0
+        self.end = 32
+        self.decimals = 0
+        self.intervals = [(0, 31)]
+        self.axes = 1
+
+    def eval(self, l):
+        x = l[0]
+        #res = math.pow(x, 3) - 60 * math.pow(x, 2) + 900 * x + 100
+        #return res
+        return x ** 3 - 60 * x ** 2 + 900 * x + 100
+
+    def fitness(self, l):
+        return self.eval(l)
+
+    def info(self):
+        return "Misc function f=x3-60x2+900x+100"
