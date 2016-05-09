@@ -144,13 +144,12 @@ class Population(object):
 
     def __init__(self, size=100, eval = EvalFunc, elitism = 1, changeProb = ProbabilitiesNoHybridization()):
         self.size = size
-        self.eval = eval()
+        self.eval = eval
         self.changeProb = changeProb
         self.elitism = elitism
         self.population = []
         self.best = None
         self.unchangedSteps = 0
-        log.info(self.eval.info())
 
     def generatePopulation(self):
         log.debug("Generating Population with size %d" % self.size)
@@ -239,7 +238,7 @@ class Population(object):
         if self.best is None or self.best.fitness < currentBest.fitness:
             log.debug("Top chromosome: ")
             self.best = currentBest
-            self.best.dump()
+            #self.best.dump()
         else:
             log.debug("Not improved in this step")
             self.unchangedSteps += 1
@@ -301,28 +300,31 @@ if __name__ == "__main__":
     maxUnchangedSteps = None
 
     if runSimulation:
-        p = Population(size=50, eval=Rastrigin, changeProb=ProbabilitiesNoHybridization())
+        p = Population(size=100, eval=Rastrigin(axes=30), changeProb=ProbabilitiesWithHybridization())
         p.generatePopulation()
-        p.dump()
-        for i in range(0, 40):
+        log.info(p.eval.info())
+        #p.dump()
+        for i in range(0, 1000):
             try:
                 p.step()
-                p.dumpBest()
+                #p.dumpBest()
             except EvaluationOverflow:
-                log.info("Evaluation limit reached !")
+                log.error("Evaluation limit %d reached !" % EvaluationOverflow.limit)
                 break
 
             if maxUnchangedSteps is not None and p.unchangedSteps > maxUnchangedSteps:
                 log.debug("Unchanged in %d steps. Finishing." % maxUnchangedSteps)
                 break
 
-        log.info("Best: ")
+        print "Best: ",
         p.best.dump()
+
+
 
     if runBasinSimulation:
         result = {}
         for i in range(0, 32):
-            c = Chromosome(1, 0, Miscfunc1)
+            c = Chromosome(1, 0, Miscfunc1())
             c.updateValues()
             #c.dump()
             c.hybridHillclimb()

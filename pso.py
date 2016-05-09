@@ -4,7 +4,8 @@ from evalfuncs import *
 
 
 class Particle:
-	def __init__(self, axes, minx, maxx):
+	def __init__(self, evalFunc, minx, maxx):
+		axes = evalFunc.axes
 		self.position = [0.0 for i in range(axes)]
 		self.velocity = [0.0 for i in range(axes)]
 		self.best_pos = [0.0 for i in range(axes)]
@@ -18,15 +19,15 @@ class Particle:
 		self.best_eval = self.eval
 
 
-def PSO(iterations, n, axes, minx, maxx, w1, w2, w3):
+def PSO(iterations, n, evalFunc, minx, maxx, w1, w2, w3):
 	"""
 	w1 - inertia factor
 	w2 - cognitive factor for a particle
 	w3 - social swarm factor
 	"""
-
+	axes = evalFunc.axes
 	rnd = random.Random(0)
-	particles = [Particle(axes, minx, maxx) for i in range(n)]
+	particles = [Particle(evalFunc, minx, maxx) for i in range(n)]
 	overall_best_pos = [0.0 for i in range(axes)]
 	overall_best_eval = None
 
@@ -36,9 +37,9 @@ def PSO(iterations, n, axes, minx, maxx, w1, w2, w3):
 			overall_best_pos = copy.copy(particles[i].position)
 
 	iteration = 0
-	while iteration < iterations:
-		if iteration % 10 == 0 and iteration > 1:
-			print("Iteration: %d Best: %.3f" % (iteration, overall_best_eval))
+	while True: #iteration < iterations:
+		# if iteration % 10 == 0 and iteration > 1:
+		# 	print("Iteration: %d Best: %.3f" % (iteration, overall_best_eval))
 
 		for i in range(n):
 			for k in range(axes):
@@ -54,6 +55,7 @@ def PSO(iterations, n, axes, minx, maxx, w1, w2, w3):
 			for k in range(axes):
 				particles[i].position[k] += particles[i].velocity[k]
 
+
 			particles[i].eval = evalFunc.eval(particles[i].position)
 
 			if particles[i].eval < particles[i].best_eval:
@@ -64,18 +66,25 @@ def PSO(iterations, n, axes, minx, maxx, w1, w2, w3):
 				overall_best_eval = particles[i].eval
 				overall_best_pos = copy.copy(particles[i].position)
 
+
+			try:
+				EvaluationOverflow.check()
+			except EvaluationOverflow:
+				return overall_best_pos
+
 		iteration += 1
 	return overall_best_pos
 
 
 if __name__ == "__main__":
 	#evalFunc = Sixhump()
-	evalFunc = Rastrigin()
+	evalFunc = Rastrigin(axes=2)
 	#evalFunc = Rosenbrock()
 	#evalFunc = Griewangk()
-	axes = 30#evalFunc.axes
+	axes = evalFunc.axes
 	maxParticles = 200
 	maxIterations = 1000
+	evalFunc.info()
 
 	w1 = 0.7  # inertia
 	w2 = 1.6  # cognitive
@@ -86,7 +95,7 @@ if __name__ == "__main__":
 	print ("Inertia: %f\nCognitive: %f\nSocial:%f" % (w1, w2, w3))
 	print evalFunc.info()
 
-	best_position = PSO(maxIterations, maxParticles, axes, evalFunc.start, evalFunc.end, w1, w2, w3)
+	best_position = PSO(maxIterations, maxParticles, evalFunc, evalFunc.start, evalFunc.end, w1, w2, w3)
 
 	print("Swarm position %s" % map(float2e, best_position))
 	print("Solution for best found position: %.6f" % evalFunc.eval(best_position))

@@ -3,7 +3,7 @@ __author__ = "Nicu Pavel <npavel@linuxconsulting.ro>"
 import math
 
 class EvaluationOverflow(Exception):
-    limit = 5000
+    limit = 20000
     current = 0
 
     @classmethod
@@ -17,11 +17,11 @@ class float2e(float):
         return "%0.2f" % self
 
 class EvalFunc:
-    def __init__(self):
+    def __init__(self, axes=2):
         self.evaluations = 0
         self.start = 0
         self.end = 0
-        self.axes = 2
+        self.axes = axes
         self.decimals = 2
         self.intervals = [] # only used in GA TBD for hillclimbing
 
@@ -30,7 +30,7 @@ class EvalFunc:
         return l
 
     def fitness(self, l):
-        return 1/self.eval(l)
+        return 1/(self.eval(l) + 0.0000001)
 
     def info(self):
         return "Default evaluator"
@@ -39,15 +39,12 @@ class EvalFunc:
 # all functions accept list as parameter depending on dimensions
 # rastrigin(x) = 10 * n + sum(x(i)^2 - 10*cos(2*pi*x(i))), i=1:n, -5.12 <= x(i) <= 5.12
 class Rastrigin(EvalFunc):
-    def __init__(self):
-        EvalFunc.__init__(self)
+    def __init__(self, axes=2):
+        EvalFunc.__init__(self, axes)
         self.start = -5.12
         self.end = 5.12
-        # self.intervals = [(-3, 3), (-3, 3), (-3, 3), (-3, 3), (-3, 3), (-3, 3), (-3, 3), (-3, 3),(-3, 3), (-3, 3),
-        # (-3, 3), (-3, 3),(-3, 3), (-3, 3),(-3, 3), (-3, 3),(-3, 3), (-3, 3),(-3, 3), (-3, 3),(-3, 3), (-3, 3),(-3, 3),
-        # (-3, 3),(-3, 3), (-3, 3)]
-
-        self.intervals = [(-3, 3), (-3, 3)]
+        self.intervals = [(self.start, self.end)] * axes
+        #self.intervals = [(-3, 3), (-3, 3)]
 
     def eval(self, l):
         self.evaluations += 1
@@ -55,18 +52,16 @@ class Rastrigin(EvalFunc):
         res = 10 * n + sum((x ** 2 - 10 * math.cos(2 * math.pi * x)) for x in l)
         return res
 
-    def fitness(self, l):
-        return 1/(self.eval(l) + 0.0000001)
-
     def info(self):
         return "Rastrigin global minimum f(x)=0; x(i)=0, i=1:n"
 
 # f8(x)=sum(x(i)^2/4000)-prod(cos(x(i)/sqrt(i)))+1, i=1:n -600<=x(i)<= 600.
 class Griewangk(EvalFunc):
-    def __init__(self):
-        EvalFunc.__init__(self)
+    def __init__(self, axes=2):
+        EvalFunc.__init__(self, axes)
         self.start = -600
         self.end = 600
+        self.intervals = [(self.start, self.end)] * axes
 
     def eval(self, l):
         self.evaluations += 1
@@ -82,11 +77,12 @@ class Griewangk(EvalFunc):
 
 # f2(x)=sum(100*(x(i+1)-x(i)^2)^2+(1-x(i))^2) i=1:n-1; -2.048<=x(i)<=2.048.
 class Rosenbrock(EvalFunc):
-    def __init__(self):
-        EvalFunc.__init__(self)
+    def __init__(self, axes=2):
+        EvalFunc.__init__(self, axes)
         self.start = -2.048
         self.end = 2.048
         self.decimals = 3
+        self.intervals = [(self.start, self.end)] * axes
 
 
     def eval(self, l):
@@ -102,12 +98,12 @@ class Rosenbrock(EvalFunc):
 
 # fSixh(x1,x2)=(4-2.1*x1^2+x1^4/3)*x1^2+x1*x2+(-4+4*x2^2)*x2^2 -3<=x1<=3, -2<=x2<=2.
 class Sixhump(EvalFunc):
-    def __init__(self):
-        EvalFunc.__init__(self)
+    def __init__(self, axes=2):
+        EvalFunc.__init__(self) # Doesn't work on more than 2 axes/dimensions
         self.start = -2
         self.end = 2
         self.decimals = 6
-        self.intervals = [(-3, 3), (-2, 2)] # only used in GA
+        self.intervals = [(-3, 3), (-2, 2)]
 
     def eval(self, l):
         self.evaluations += 1
@@ -147,3 +143,9 @@ class Miscfunc1(EvalFunc):
 
     def info(self):
         return "Misc function f=x3-60x2+900x+100"
+
+
+if __name__ == "__main__":
+    r = Rastrigin(4)
+    print r.axes
+    print r.intervals
