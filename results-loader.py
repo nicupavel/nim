@@ -2,7 +2,10 @@ import numpy
 import sys
 from evalfuncs import *
 from terminaltables import AsciiTable, DoubleTable, SingleTable
+import plotly as py
+import plotly.graph_objs as go
 
+# 'PSO-evalfuncs.Sixhump-5, GA-evalfuncs.Sixhump-10-True # example key names
 
 tableData = [
     ["Algo", "Rastrigin", "", "", "Griewangk",  "", "",  "Rosenbrock",  "", "", "Sixhump", "", ""],
@@ -74,3 +77,22 @@ table.inner_heading_row_border = False
 print()
 print(table.table)
 
+for f in funcs:
+    for a in (10, ):
+        graphData = []
+        #GA-evalfuncs.Sixhump-10-True
+        nameGA = "GA-" + str(f) + "-" + str(a)+ "-" + "False"
+        nameGAHybrid = "GA-" + str(f) + "-" + str(a)+ "-" + "True"
+        namePSO = "PSO-" + str(f) + "-" + str(a)
+
+        info = str(f).split(".")[1] + "-" + str(a) + " axes"
+
+        gGA = go.Scatter(y = sorted(results[nameGA], reverse=True), mode='lines', name='GA ' + info )
+        gGAHybrid = go.Scatter(y = sorted(results[nameGAHybrid], reverse=True ), mode='lines', name='GA Hybrid ' + info)
+        gPSO = go.Scatter(y = sorted(results[namePSO], reverse=True ), mode='lines', name='PSO ' + info)
+
+        graphData.append(gGA)
+        graphData.append(gGAHybrid)
+        graphData.append(gPSO)
+
+        py.offline.plot(graphData, filename='graph'+ info + '.html')
