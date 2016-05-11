@@ -3,7 +3,7 @@ __author__ = "Nicu Pavel <npavel@linuxconsulting.ro>"
 import math
 
 class EvaluationOverflow(Exception):
-    limit = 20000
+    limit = 50000
     current = 0
 
     @classmethod

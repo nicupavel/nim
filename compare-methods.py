@@ -93,7 +93,7 @@ def runAllTests():
             results[name+"-std"] = getStdDev(results[name])
             print("Done:", name)
 
-    numpy.save("results-" + str(int(time.time())), results)
+    numpy.save("results-" + str(EvaluationOverflow.limit) + "-runs-" + str(int(time.time())), results)
 
 
 if __name__ == "__main__":
