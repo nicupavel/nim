@@ -1,7 +1,7 @@
 import numpy
 import sys
 from evalfuncs import *
-from terminaltables import AsciiTable, DoubleTable, SingleTable
+from terminaltables import AsciiTable, DoubleTable, SingleTable, GithubFlavoredMarkdownTable
 import plotly as py
 import plotly.graph_objs as go
 
@@ -70,7 +70,8 @@ tableData.append(tableRowStdDev)
 
 #table = DoubleTable(tableData, 'Natural Methods')
 
-table = SingleTable(tableData, 'Natural Methods')
+#table = SingleTable(tableData, 'Natural Methods')
+table = GithubFlavoredMarkdownTable(tableData)
 table.inner_heading_row_border = False
 
 #table.justify_columns[2] = 'right'
