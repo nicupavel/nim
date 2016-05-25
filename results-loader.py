@@ -78,7 +78,7 @@ print()
 print(table.table)
 
 for f in funcs:
-    for a in (10, ):
+    for a in axes:
         graphData = []
         #GA-evalfuncs.Sixhump-10-True
         nameGA = "GA-" + str(f) + "-" + str(a)+ "-" + "False"
