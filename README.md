@@ -4,6 +4,12 @@ Nature Inspired Methods:
  - Simulated Annealing Hill Climbing
  - Genetic Algorithm with variations
  - Particle Swarm Optimisation
+ 
+# Usage
+
+Run compare-methods.py which will generate a results file (eg results-1462734115.npy)
+
+Run results-loader.py with the results file as parameter to generate the results table and all the graphs.
 
 # Evaluator functions
  - Rastrigin
