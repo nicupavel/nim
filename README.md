@@ -34,3 +34,8 @@ Run results-loader.py with the results file as parameter to generate the results
 | PSO        |       0.07 |       2.89 |      36.82 |       0.02 |       0.08 |       0.01 |       0.06 |       3.05 |      28.97 |      -1.03 |      -1.03 |      -1.03 |
 |    Std Dev |       0.25 |       1.53 |       9.45 |       0.01 |       0.04 |       0.01 |       0.02 |       1.01 |      14.04 |       0.00 |       0.00 |       0.00 |
 
+
+![Griewangk 30 Axes](https://github.com/nicupavel/nim/blob/master/results/griewangk-30.png)
+![Rastrigin 30 Axes](https://github.com/nicupavel/nim/blob/master/results/rastrigin-30.png)
+![Rosenbrock 30 Axes](https://github.com/nicupavel/nim/blob/master/results/rosenbrock-30.png)
+![Sixhump 30 Axes](https://github.com/nicupavel/nim/blob/master/results/sixhump-30.png)
